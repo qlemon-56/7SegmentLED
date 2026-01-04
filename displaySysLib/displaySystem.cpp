@@ -1,0 +1,80 @@
+#include "mbed.h"
+#include "displaySystem.h"
+
+/*
+ledDP(D0); segment DP
+ledA(D1); segment A
+ledB(D2); segment B
+ledC(D3); segment C
+ledD(D4); segment D
+ledE(D5); segment E
+ledF(D6); segment F
+ledG(D7); segment G
+*/
+
+DisplaySystem::DisplaySystem(PinName ledA, PinName ledB, PinName ledC, PinName ledD, PinName ledE, PinName ledF, PinName ledG, PinName ledDP) : ledA_(ledA), ledB_(ledB), ledC_(ledC), ledD_(ledD), ledE_(ledE), ledF_(ledF), ledG_(ledG), ledDP_(ledDP) {
+
+    // power saving mode encoding
+    characterSet[' '] = {false, false, false, false, false, false, false, false};
+    characterSet['a'] = {true, true, false, false, false, true, false, false};
+    characterSet['b'] = {false, false, true, true, false, true, true, false};
+    characterSet['c'] = {true, false, false, false, false, true, true, false};
+    characterSet['d'] = {false, true, false, true, true, false, true, false};
+    characterSet['e'] = {true, false, false, true, false, false, true, false};
+    characterSet['f'] = {true, false, false, false, true, false, true, false};
+    characterSet['g'] = {false, false, true, true, false, false, true, true};
+    characterSet['h'] = {false, false, true, false, true, true, true, false};
+    characterSet['i'] = {false, false, false, false, true, false, false, true};
+    characterSet['j'] = {false, false, true, true, false, false, false, true};
+    characterSet['k'] = {false, false, false, false, true, true, true, true};
+    characterSet['l'] = {false, false, false, true, true, false, false, false};
+    characterSet['m'] = {true, false, true, false, true, false, false, false};
+    characterSet['n'] = {false, false, true, false, false, false, true, false};
+    characterSet['o'] = {true, true, false, false, false, true, true, false};
+    characterSet['p'] = {true, true, false, false, true, false, true, false};
+    characterSet['q'] = {true, false, true, false, false, true, true, false};
+    characterSet['r'] = {false, false, false, false, true, false, true, false};
+    characterSet['s'] = {true, false, true, true, false, false, true, false};
+    characterSet['t'] = {true, false, false, false, true, true, false, false};
+    characterSet['u'] = {false, false, true, true, true, false, false, false};
+    characterSet['v'] = {false, false, true, true, true, false, false, true};
+    characterSet['w'] = {false, true, false, false, false, true, true, true};
+    characterSet['x'] = {false, true, true, false, true, true, false, false};
+    characterSet['y'] = {false, false, true, false, false, true, true, true};
+    characterSet['z'] = {true, true, false, true, false, false, true, true};
+    characterSet['0'] = {true, true, true, true, true, true, false, false};
+    characterSet['1'] = {false, true, true, false, false, false, false, false};    
+    characterSet['2'] = {true, true, false, true, true, false, true, false};
+    characterSet['3'] = {true, true, true, true, false, false, true, false};
+    characterSet['4'] = {false, true, true, false, false, true, true, false};
+    characterSet['5'] = {true, false, true, true, false, true, true, false};
+    characterSet['6'] = {true, false, true, true, true, true, true, false};
+    characterSet['7'] = {true, true, true, false, false, false, false, false};
+    characterSet['8'] = {true, true, true, true, true, true, true, false};
+    characterSet['9'] = {true, true, true, true, false, true, true, false};   
+}
+
+
+void DisplaySystem::print(char const * text_) {
+        
+    int i = 0;
+    while (text_[i] != 0) {
+        dispLetter(text_[i]);
+        
+        i = i+1;
+        thread_sleep_for(1500);
+    }
+};
+
+void DisplaySystem::dispLetter(char letter_) {
+             
+        ledA_ = characterSet[letter_][0];
+        ledB_ = characterSet[letter_][1];
+        ledC_ = characterSet[letter_][2];
+        ledD_ = characterSet[letter_][3];
+        ledE_ = characterSet[letter_][4];
+        ledF_ = characterSet[letter_][5];
+        ledG_ = characterSet[letter_][6];
+        ledDP_ = characterSet[letter_][7];     
+};
+
