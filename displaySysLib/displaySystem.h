@@ -21,7 +21,9 @@ class DisplaySystem {
     public:
     
     DisplaySystem(PinName ledA, PinName ledB, PinName ledC, PinName ledD, PinName ledE, PinName ledF, PinName ledG, PinName ledDP);
-        
+    
+    void startup();
+
     void print(char const * text_);
     
     void dispLetter(char letter_);

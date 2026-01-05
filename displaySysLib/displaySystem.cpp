@@ -14,6 +14,9 @@ ledG(D7); segment G
 
 DisplaySystem::DisplaySystem(PinName ledA, PinName ledB, PinName ledC, PinName ledD, PinName ledE, PinName ledF, PinName ledG, PinName ledDP) : ledA_(ledA), ledB_(ledB), ledC_(ledC), ledD_(ledD), ledE_(ledE), ledF_(ledF), ledG_(ledG), ledDP_(ledDP) {
 
+    // default timer
+    timer_ = 1000;
+
     // power saving mode encoding
     characterSet[' '] = {false, false, false, false, false, false, false, false};
     characterSet['a'] = {true, true, false, false, false, true, false, false};
@@ -54,27 +57,60 @@ DisplaySystem::DisplaySystem(PinName ledA, PinName ledB, PinName ledC, PinName l
     characterSet['9'] = {true, true, true, true, false, true, true, false};   
 }
 
+void DisplaySystem::startup() {
+
+    // ledArray used here for simplification
+    DigitalOut ledArray[6] = {ledA_, ledB_, ledC_, ledD_, ledE_, ledF_};
+
+    // inner loop sets the leds on and off in sequence, while the outer loop repeats the animation sequence
+    for (int x = 0; x < 4; x++) {
+
+        for (int i = 0; i < 6; i++) {
+            
+            ledArray[i] = true;
+            thread_sleep_for(150);
+            ledArray[i] = false;
+        
+        }
+    }
+}
 
 void DisplaySystem::print(char const * text_) {
-        
+    
+    // print function displays a sequence of letters on the 7 segment display
     int i = 0;
     while (text_[i] != 0) {
+
+        // displetter function is used to display each character one by one
         dispLetter(text_[i]);
         
         i = i+1;
-        thread_sleep_for(1500);
+        thread_sleep_for(timer_);
     }
+    
+    // clears display after printing
+    ledA_ = false;
+    ledB_ = false;
+    ledC_ = false;
+    ledD_ = false;
+    ledE_ = false;
+    ledF_ = false;
+    ledG_ = false;
+    ledDP_ = false;  
+
 };
 
 void DisplaySystem::dispLetter(char letter_) {
-             
-        ledA_ = characterSet[letter_][0];
-        ledB_ = characterSet[letter_][1];
-        ledC_ = characterSet[letter_][2];
-        ledD_ = characterSet[letter_][3];
-        ledE_ = characterSet[letter_][4];
-        ledF_ = characterSet[letter_][5];
-        ledG_ = characterSet[letter_][6];
-        ledDP_ = characterSet[letter_][7];     
+
+    // this function looks up the value of the given letter in the characterSet map then sets each led to the appropriate state         
+    
+    ledA_ = characterSet[letter_][0];
+    ledB_ = characterSet[letter_][1];
+    ledC_ = characterSet[letter_][2];
+    ledD_ = characterSet[letter_][3];
+    ledE_ = characterSet[letter_][4];
+    ledF_ = characterSet[letter_][5];
+    ledG_ = characterSet[letter_][6];
+    ledDP_ = characterSet[letter_][7];     
 };
 
