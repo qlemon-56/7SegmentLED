@@ -1,62 +1,70 @@
+/*
+UOY Year 1 PaDI Final Project
+7 Segment Display System
+Developed by Mark Imade
+*/
+
 #include "mbed.h"
 #include "displaySystem.h"
 
-InterruptIn buttonA(A0); // Display animation function interrupt
-InterruptIn buttonFN(A1); // first name function interrupt
-InterruptIn buttonLN(A2); // last Name function interrupt
+InterruptIn buttonCustomText(A0); // customText function interrupt
+InterruptIn buttonFirstName(A1); // first name function interrupt
+InterruptIn buttonLastName(A2); // last Name function interrupt
+InterruptIn buttonPrintDelay(BUTTON1);
 
 // threads for each process
-Thread animation;
+Thread customText;
 Thread firstName;
 Thread lastName;
+Thread printDelay;
 
 // semaphores for interrupts
-Semaphore buttonASemaphore(0, 1);
-Semaphore buttonFNSemaphore(0, 1);
-Semaphore buttonLNSemaphore(0, 1);
+Semaphore buttonCustomTextSemaphore(0, 1);
+Semaphore buttonFirstNameSemaphore(0, 1);
+Semaphore buttonLastNameSemaphore(0, 1);
+Semaphore buttonPrintDelaySemaphore(0, 1);
 
-// this prevents clash
+// this mutex is specifically used to prevent the display from being used by multiple functions at the same time
 Mutex processKey;
 
-int execution = 0;
-
-// Initialize the display system class and set pins to corresponding led segments
+// initialize the display system class and set pins to corresponding led segments (in order from segment A to DP)
 DisplaySystem newDisp(D1, D2, D3, D4, D5, D6, D7, D0);
 
-// corresponding callback functions
-void buttonACallback() {
-    buttonASemaphore.release();
+// corresponding callback functions each releasing required semaphore 
+void buttonCustomTextCallback() {
+    buttonCustomTextSemaphore.release();
 }
 
 void buttonFNCallback() {
-    buttonFNSemaphore.release();
+    buttonFirstNameSemaphore.release();
 }
 
 void buttonLNCallback() {
-    buttonLNSemaphore.release();
+    buttonLastNameSemaphore.release();
 }
 
-// corresponding threads
-void animationThread() {
+void buttonPrintDelayCallback() {
+    buttonPrintDelaySemaphore.release();
+}
 
+/* 
+corresponding threads which are started upon bootup
+the external while loop ensures they continually look for their required semaphore
+the processKey mutex is first locked before the print method is called to ensure only one thing is being displayed on the 7 segment display at a time
+after text is done displaying mutex is unlocked
+*/
+void customTextThread() {
     while(true) {
-
-        buttonASemaphore.acquire();
-        thread_sleep_for(100);
-
+        buttonCustomTextSemaphore.acquire();
         processKey.lock();
-        newDisp.startup();
+        newDisp.print(newDisp.customText_);
         processKey.unlock();
-
     }
 }
 
-void firstNameThread() {
-
+void firstNameThread() { 
     while(true) {
-        
-        buttonFNSemaphore.acquire();
-        thread_sleep_for(100);
+        buttonFirstNameSemaphore.acquire();
         processKey.lock();
         newDisp.print("osamu");
         processKey.unlock();
@@ -64,31 +72,37 @@ void firstNameThread() {
 }
 
 void lastNameThread() {
-
     while(true) {
-
-        buttonLNSemaphore.acquire();
-        thread_sleep_for(100);
+        buttonLastNameSemaphore.acquire();
         processKey.lock();
         newDisp.print("imade");
         processKey.unlock();
-
     }
 }
 
+// this thread is different because it does not display anything only alters timing
+void buttonPrintDelayThread() {
+    while (true) {
+        buttonPrintDelaySemaphore.acquire();
+        newDisp.setDelay();
+    }
+}
+
+
 int main() {
 
-    // Start up threads
-    animation.start(animationThread);
+    // start up threads
+    customText.start(customTextThread);
     firstName.start(firstNameThread);
     lastName.start(lastNameThread);
+    printDelay.start(buttonPrintDelayThread);
     
-    // Check for interrupts and call corresponding callback functions
-    buttonA.fall(buttonACallback);
-    buttonFN.fall(buttonFNCallback);
-    buttonLN.fall(buttonLNCallback);
+    // check for interrupts when a button is pressed and trigger corresponding callback functions
+    buttonCustomText.fall(buttonCustomTextCallback);
+    buttonFirstName.fall(buttonFNCallback);
+    buttonLastName.fall(buttonLNCallback);
+    buttonPrintDelay.fall(buttonPrintDelayCallback);
 
     // initial startup animation
     newDisp.startup();
-
 }

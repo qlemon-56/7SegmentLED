@@ -2,7 +2,6 @@
 #include "displaySystem.h"
 
 /*
-ledDP(D0); segment DP
 ledA(D1); segment A
 ledB(D2); segment B
 ledC(D3); segment C
@@ -10,14 +9,13 @@ ledD(D4); segment D
 ledE(D5); segment E
 ledF(D6); segment F
 ledG(D7); segment G
+ledDP(D0); segment DP
 */
 
+// displaySystem constructor accepts 8 DigitalOut pins as arguments to control segments A to DP
 DisplaySystem::DisplaySystem(PinName ledA, PinName ledB, PinName ledC, PinName ledD, PinName ledE, PinName ledF, PinName ledG, PinName ledDP) : ledA_(ledA), ledB_(ledB), ledC_(ledC), ledD_(ledD), ledE_(ledE), ledF_(ledF), ledG_(ledG), ledDP_(ledDP) {
 
-    // default timer
-    timer_ = 1000;
-
-    // power saving mode encoding
+    // here we add chars a-z, space ' ', and 0-9 in power saving mode encoding to characterSet (Each bool defines the state of each led segment)
     characterSet[' '] = {false, false, false, false, false, false, false, false};
     characterSet['a'] = {true, true, false, false, false, true, false, false};
     characterSet['b'] = {false, false, true, true, false, true, true, false};
@@ -57,14 +55,17 @@ DisplaySystem::DisplaySystem(PinName ledA, PinName ledB, PinName ledC, PinName l
     characterSet['9'] = {true, true, true, true, false, true, true, false};   
 }
 
+// definition of startup method
 void DisplaySystem::startup() {
 
-    // ledArray used here for simplification
+    // ledArray used here for simplicity
     DigitalOut ledArray[6] = {ledA_, ledB_, ledC_, ledD_, ledE_, ledF_};
 
-    // inner loop sets the leds on and off in sequence, while the outer loop repeats the animation sequence
+    // the outer loop repeats the animation sequence
     for (int x = 0; x < 4; x++) {
 
+        // inner loop sets the leds on and off in sequence
+        // it iterates over the ledArray altering the value of each segment at each cycle to make a simple animation
         for (int i = 0; i < 6; i++) {
             
             ledArray[i] = true;
@@ -73,22 +74,45 @@ void DisplaySystem::startup() {
         
         }
     }
+    
+    // after animation we print the following text to serial monitor and wait for user response
+    printf("Would you like to display some custom text? \nEnter y/n: ");
+    scanf("%c", &setCustomTextOption_);
+
+    if (setCustomTextOption_ == 'y') {
+
+        // if input is y print the following then set customText using scanf
+        printf("\nEnter text:\n(20 character limit, only numbers and lowercase letters)");
+        scanf("%s", customText_);
+        printf("\nText set as: %s", customText_ );
+
+    } else if (setCustomTextOption_ == 'n') {
+
+        // if input is n print the following
+        printf("Okay no custom text set.");
+
+    } else {
+
+        // handles any input other than y or n
+        printf("Invalid option. No custom text set.");
+    
+    }
 }
 
+// print method simply iterates over a string literal and passes each char as an argument to displayChar method
 void DisplaySystem::print(char const * text_) {
     
-    // print function displays a sequence of letters on the 7 segment display
+    // print function displays a sequence of letters on the 7 segment display when called (displayChar method does the heavylifting)
     int i = 0;
     while (text_[i] != 0) {
-
-        // displetter function is used to display each character one by one
-        dispLetter(text_[i]);
         
+        // displetter function is used to display each character one by one
+        displayChar(text_[i]);
         i = i+1;
         thread_sleep_for(timer_);
     }
     
-    // clears display after printing
+    // clears display after printing by turning all segments off
     ledA_ = false;
     ledB_ = false;
     ledC_ = false;
@@ -100,10 +124,8 @@ void DisplaySystem::print(char const * text_) {
 
 };
 
-void DisplaySystem::dispLetter(char letter_) {
-
-    // this function looks up the value of the given letter in the characterSet map then sets each led to the appropriate state         
-    
+// displayChar method looks up the value of the given char in the characterSet map then sets each led to the appropriate state
+void DisplaySystem::displayChar(char letter_) {
     ledA_ = characterSet[letter_][0];
     ledB_ = characterSet[letter_][1];
     ledC_ = characterSet[letter_][2];
@@ -114,3 +136,14 @@ void DisplaySystem::dispLetter(char letter_) {
     ledDP_ = characterSet[letter_][7];     
 };
 
+// setDelay method alters inter-character display time
+void DisplaySystem::setDelay() {
+
+    // this function is triggered whenever blue button is pressed (button1)
+    // the if statement below checks if the timer is less than 3s, if yes it increments it by 1 second up until it hits 3 seconds then it resets
+    if (timer_ < 3000) {
+        timer_ = timer_ + 1000;
+    } else {
+        timer_ = 1000;
+    }
+}
