@@ -7,22 +7,14 @@ Developed by Mark Imade
 #include "mbed.h"
 #include "displaySystem.h"
 
-InterruptIn buttonCustomText(A0); // customText function interrupt
-InterruptIn buttonFirstName(A1); // first name function interrupt
-InterruptIn buttonLastName(A2); // last Name function interrupt
-InterruptIn buttonPrintDelay(BUTTON1);
+// customText function interrupt  // first name function interrupt // last Name function interrupt
+InterruptIn buttonCustomText(A0), buttonFirstName(A1), buttonLastName(A2), buttonPrintDelay(BUTTON1);
 
 // threads for each process
-Thread customText;
-Thread firstName;
-Thread lastName;
-Thread printDelay;
+Thread customText, firstName, lastName, printDelay;
 
 // semaphores for interrupts
-Semaphore buttonCustomTextSemaphore(0, 1);
-Semaphore buttonFirstNameSemaphore(0, 1);
-Semaphore buttonLastNameSemaphore(0, 1);
-Semaphore buttonPrintDelaySemaphore(0, 1);
+Semaphore buttonCustomTextSemaphore(0, 1), buttonFirstNameSemaphore(0, 1), buttonLastNameSemaphore(0, 1), buttonPrintDelaySemaphore(0, 1);
 
 // this mutex is specifically used to prevent the display from being used by multiple functions at the same time
 Mutex processKey;
@@ -53,12 +45,19 @@ the external while loop ensures they continually look for their required semapho
 the processKey mutex is first locked before the print method is called to ensure only one thing is being displayed on the 7 segment display at a time
 after text is done displaying mutex is unlocked
 */
+
 void customTextThread() {
     while(true) {
         buttonCustomTextSemaphore.acquire();
-        processKey.lock();
-        newDisp.print(newDisp.customText_);
-        processKey.unlock();
+
+        // if statement checks for the user's input and allows them retry if they previously did not set anything
+        if (newDisp.setCustomTextOption_ != 'y') {
+            newDisp.setCustomText();
+        } else {    
+            processKey.lock();
+            newDisp.print(newDisp.customText_);
+            processKey.unlock();
+        }
     }
 }
 

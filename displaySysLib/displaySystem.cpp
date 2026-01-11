@@ -74,29 +74,8 @@ void DisplaySystem::startup() {
         
         }
     }
-    
-    // after animation we print the following text to serial monitor and wait for user response
-    printf("Would you like to display some custom text? \nEnter y/n: ");
-    scanf("%c", &setCustomTextOption_);
 
-    if (setCustomTextOption_ == 'y') {
-
-        // if input is y print the following then set customText using scanf
-        printf("\nEnter text:\n(20 character limit, only numbers and lowercase letters)");
-        scanf("%s", customText_);
-        printf("\nText set as: %s", customText_ );
-
-    } else if (setCustomTextOption_ == 'n') {
-
-        // if input is n print the following
-        printf("Okay no custom text set.");
-
-    } else {
-
-        // handles any input other than y or n
-        printf("Invalid option. No custom text set.");
-    
-    }
+    setCustomText();
 }
 
 // print method simply iterates over a string literal and passes each char as an argument to displayChar method
@@ -113,14 +92,7 @@ void DisplaySystem::print(char const * text_) {
     }
     
     // clears display after printing by turning all segments off
-    ledA_ = false;
-    ledB_ = false;
-    ledC_ = false;
-    ledD_ = false;
-    ledE_ = false;
-    ledF_ = false;
-    ledG_ = false;
-    ledDP_ = false;  
+    ledA_ = ledB_ = ledC_ = ledD_ = ledE_ = ledF_ = ledG_ = ledDP_ = false;
 
 };
 
@@ -145,5 +117,31 @@ void DisplaySystem::setDelay() {
         timer_ = timer_ + 1000;
     } else {
         timer_ = 1000;
+    }
+}
+
+void DisplaySystem::setCustomText() {
+    
+    // after animation we print the following text to serial monitor and wait for user response
+    printf("Would you like to display some custom text? \nEnter y/n: ");
+    scanf("%c", &setCustomTextOption_);
+
+    if (setCustomTextOption_ == 'y') {
+
+        // if input is y print the following then set customText using scanf
+        printf("\nEnter text:\n(20 character limit, only numbers and lowercase letters)\n");
+        scanf("%s", customText_);
+        printf("\nText set as: %s ", customText_);
+
+    } else if (setCustomTextOption_ == 'n') {
+
+        // if input is n print the following
+        printf("Okay no custom text set.\n");
+
+    } else {
+
+        // handles any input other than y or n
+        printf("Invalid option. Please press button to retry...\n");
+    
     }
 }
