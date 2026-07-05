@@ -1,4 +1,4 @@
-# 7SegmentLED > Year 1 PaDI Final Project
+# 7SegmentLED - Year 1 PaDI Final Project
 
 ## Overview
 
@@ -24,9 +24,9 @@ This project drives a single 7-segment display through a custom `DisplaySystem` 
 
 ## Usage
 
-1. Power on the board — a startup animation plays on the display.
+1. Power on the board — a startup animation plays on the display
 2. Press a button to trigger its corresponding action:
-   - **Custom Text button** — first press prompts you to enter custom text; subsequent presses display it
+   - **Custom Text button** — first press prompts you to enter custom text; subsequent presses display the text
    - **First Name button** — displays first name
    - **Last Name button** — displays last name
-   - **Print Delay button** — adjusts the display timing rather than showing text
+   - **Print Delay button** — adjusts the display timing
